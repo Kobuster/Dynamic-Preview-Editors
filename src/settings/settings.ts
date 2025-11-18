@@ -15,14 +15,19 @@ export interface HoverEditorSettings {
   initialWidth: string;
   showViewHeader: boolean;
   imageZoom: boolean;
-  hoverEmbeds: boolean;
-  footnotes: "always" | "never";
-  headings: "always" | "never";
-  blocks: "always" | "never";
+  footnotes: "native" | "floating" | "sidebar";
+  headings: "native" | "floating" | "sidebar";
+  blocks: "native" | "floating" | "sidebar";
+  hoverEmbeds: "native" | "floating" | "sidebar";
+  sidebarAutoFocus: boolean;
+  sidebarPosition: "left" | "right";
+  sidebarAutoReveal: boolean;
+  regularLinks: "native" | "floating" | "sidebar";
 }
 
 export const DEFAULT_SETTINGS: HoverEditorSettings = {
-  defaultMode: "preview",
+  regularLinks: "sidebar",
+  defaultMode: "match",
   autoPin: "onMove",
   triggerDelay: 300,
   closeDelay: 600,
@@ -33,10 +38,13 @@ export const DEFAULT_SETTINGS: HoverEditorSettings = {
   initialWidth: "400px",
   showViewHeader: false,
   imageZoom: true,
-  hoverEmbeds: false,
-  footnotes: requireApiVersion("1.6") ? "never" : "always",
-  headings: "always",
-  blocks: requireApiVersion("1.6") ? "never" : "always",
+  footnotes: "native",
+  headings: "sidebar", 
+  blocks: "floating",
+  hoverEmbeds: "sidebar",
+  sidebarAutoFocus: false,
+  sidebarPosition: "right",
+  sidebarAutoReveal: true,
 };
 
 export const modeOptions = {
@@ -65,7 +73,9 @@ export class SettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    new Setting(containerEl).setName("Default Mode").addDropdown(cb => {
+    containerEl.createEl("h3", { text: "General Settings" });
+
+    new Setting(containerEl).setName("View Mode").addDropdown(cb => {
       cb.addOptions(modeOptions);
       cb.setValue(this.plugin.settings.defaultMode);
       cb.onChange(async value => {
@@ -74,63 +84,141 @@ export class SettingTab extends PluginSettingTab {
       });
     });
 
-    new Setting(containerEl).setName("Auto Pin").addDropdown(cb => {
-      cb.addOptions(pinOptions);
-      cb.setValue(this.plugin.settings.autoPin);
-      cb.onChange(async value => {
-        this.plugin.settings.autoPin = value;
-        await this.plugin.saveSettings();
+    new Setting(containerEl)
+      .setName("Hover Trigger Delay (ms)")
+      .setDesc("How long to wait before showing a Hover Editor when hovering over a link")
+      .addText(textfield => {
+        textfield.setPlaceholder(String(this.plugin.settings.triggerDelay));
+        textfield.inputEl.type = "number";
+        textfield.setValue(String(this.plugin.settings.triggerDelay));
+        textfield.onChange(async value => {
+          this.plugin.settings.triggerDelay = Number(value);
+          this.plugin.saveSettings();
+        });
       });
-    });
+
+    containerEl.createEl("h3", { text: "Preview Modes" });
 
     new Setting(containerEl)
-      .setName("Trigger hover preview on embeds")
-      .setDesc(
-        "Allow hover preview to trigger when hovering over any type of rendered embed such as images or block references",
-      )
-      .addToggle(toggle =>
-        toggle.setValue(this.plugin.settings.hoverEmbeds).onChange(value => {
+  .setName("Regular links")
+  .setDesc("How to preview regular note links ([[Note]])")
+  .addDropdown(dropdown =>
+    dropdown
+      .addOption("native", "Native preview")
+      .addOption("floating", "Floating hover editor")
+      .addOption("sidebar", "right or left sidebar")
+      .setValue(this.plugin.settings.regularLinks)
+      .onChange(async (value: "native" | "floating" | "sidebar") => {
+        this.plugin.settings.regularLinks = value;
+        await this.plugin.saveSettings();
+      })
+  );
+
+
+  new Setting(containerEl)
+    .setName("Heading links")
+    .setDesc("How to preview links to headings (#Heading)")
+    .addDropdown(dropdown =>
+      dropdown
+        .addOption("native", "Native preview")
+        .addOption("floating", "Floating hover editor")
+        .addOption("sidebar", "right or left sidebar")
+        .setValue(this.plugin.settings.headings)
+        .onChange(async (value: "native" | "floating" | "sidebar") => {
+          this.plugin.settings.headings = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+  new Setting(containerEl)
+    .setName("Block links")
+    .setDesc("How to preview links to blocks (#^blockid)")
+    .addDropdown(dropdown =>
+      dropdown
+        .addOption("native", "Native preview")
+        .addOption("floating", "Floating hover editor")
+        .addOption("sidebar", "right or left sidebar")
+        .setValue(this.plugin.settings.blocks)
+        .onChange(async (value: "native" | "floating" | "sidebar") => {
+          this.plugin.settings.blocks = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+  new Setting(containerEl)
+    .setName("Embed links")
+    .setDesc("How to preview embedded content (![[image]] or ![[note]])")
+    .addDropdown(dropdown =>
+      dropdown
+        .addOption("native", "Native preview")
+        .addOption("floating", "Floating hover editor")
+        .addOption("sidebar", "right or left sidebar")
+        .setValue(this.plugin.settings.hoverEmbeds)
+        .onChange(async (value: "native" | "floating" | "sidebar") => {
           this.plugin.settings.hoverEmbeds = value;
-          this.plugin.saveSettings();
-        }),
+          await this.plugin.saveSettings();
+        })
+    );
+
+    
+    new Setting(containerEl)
+    .setName("Footnote links")
+    .setDesc("How to preview footnote links ([^1])")
+    .addDropdown(dropdown =>
+      dropdown
+        .addOption("native", "Native preview")
+        .addOption("floating", "Floating hover editor")
+        .addOption("sidebar", "right or left sidebar")
+        .setValue(this.plugin.settings.footnotes)
+        .onChange(async (value: "native" | "floating" | "sidebar") => {
+          this.plugin.settings.footnotes = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+  containerEl.createEl("h3", { text: "Sidebar Modes" });
+
+      new Setting(containerEl)
+      .setName("Sidebar position")
+      .setDesc("Which sidebar to use for preview. Requires restarting the plugin to take effect.")
+      .addDropdown(dropdown =>
+        dropdown
+          .addOption("left", "Left sidebar")
+          .addOption("right", "right or left sidebar")
+          .setValue(this.plugin.settings.sidebarPosition)
+          .onChange(async (value: "left" | "right") => {
+            this.plugin.settings.sidebarPosition = value;
+            await this.plugin.saveSettings();
+          })
       );
 
     new Setting(containerEl)
-      .setName("Trigger hover preview on sub-heading links")
-      .setDesc(
-        "Use hover editor for links to subheadings, instead of the built-in preview/editor",
-      )
+      .setName("Auto-reveal sidebar")
+      .setDesc("Automatically open/reveal the sidebar when hovering links")
       .addToggle(toggle =>
-        toggle.setValue(this.plugin.settings.headings === "always").onChange(value => {
-          this.plugin.settings.headings = value ? "always" : "never";
-          this.plugin.saveSettings();
-        }),
+        toggle
+          .setValue(this.plugin.settings.sidebarAutoReveal)
+          .onChange(async (value) => {
+            this.plugin.settings.sidebarAutoReveal = value;
+            await this.plugin.saveSettings();
+          })
       );
 
     new Setting(containerEl)
-      .setName("Trigger hover preview on block links")
-      .setDesc(
-        "Use hover editor for links to blocks, instead of the built-in preview/editor",
-      )
+      .setName("Auto-focus sidebar")
+      .setDesc("Automatically move cursor focus to the sidebar preview")
       .addToggle(toggle =>
-        toggle.setValue(this.plugin.settings.blocks === "always").onChange(value => {
-          this.plugin.settings.blocks = value ? "always" : "never";
-          this.plugin.saveSettings();
-        }),
+        toggle
+          .setValue(this.plugin.settings.sidebarAutoFocus)
+          .onChange(async (value) => {
+            this.plugin.settings.sidebarAutoFocus = value;
+            await this.plugin.saveSettings();
+          })
       );
 
-    new Setting(containerEl)
-      .setName("Trigger hover preview on footnotes")
-      .setDesc(
-        "Use hover editor for footnotes, instead of the built-in preview/editor",
-      )
-      .addToggle(toggle =>
-        toggle.setValue(this.plugin.settings.footnotes === "always").onChange(value => {
-          this.plugin.settings.footnotes = value ? "always" : "never";
-          this.plugin.saveSettings();
-        }),
-      );
+  containerEl.createEl("h3", { text: "Hover Settings" });
 
+  
     new Setting(containerEl)
       .setName("Auto Focus")
       .setDesc("Set the hover editor as the active pane when opened")
@@ -140,6 +228,15 @@ export class SettingTab extends PluginSettingTab {
           this.plugin.saveSettings();
         }),
       );
+
+          new Setting(containerEl).setName("Auto Pin").addDropdown(cb => {
+      cb.addOptions(pinOptions);
+      cb.setValue(this.plugin.settings.autoPin);
+      cb.onChange(async value => {
+        this.plugin.settings.autoPin = value;
+        await this.plugin.saveSettings();
+      });
+    });
 
     new Setting(containerEl)
       .setName("Minimize downwards")
@@ -217,19 +314,6 @@ export class SettingTab extends PluginSettingTab {
           value = parseCssUnitValue(value);
           if (!value) value = DEFAULT_SETTINGS.initialHeight;
           this.plugin.settings.initialHeight = value;
-          this.plugin.saveSettings();
-        });
-      });
-
-    new Setting(containerEl)
-      .setName("Hover Trigger Delay (ms)")
-      .setDesc("How long to wait before showing a Hover Editor when hovering over a link")
-      .addText(textfield => {
-        textfield.setPlaceholder(String(this.plugin.settings.triggerDelay));
-        textfield.inputEl.type = "number";
-        textfield.setValue(String(this.plugin.settings.triggerDelay));
-        textfield.onChange(async value => {
-          this.plugin.settings.triggerDelay = Number(value);
           this.plugin.saveSettings();
         });
       });

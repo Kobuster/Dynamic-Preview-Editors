@@ -1,0 +1,8 @@
+/* Only target markdown views inside right sidebar */
+.workspace-split.mod-right-split .workspace-leaf .view-header {
+  display: flex !important;
+}
+/* Only target markdown views inside right sidebar */
+.workspace-split.mod-left-split .workspace-leaf .view-header {
+  display: flex !important;
+}

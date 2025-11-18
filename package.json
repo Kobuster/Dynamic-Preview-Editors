@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-hover-editor",
+  "name": "Sidebar-Preview",
   "version": "0.10.0",
-  "description": "Transform the Page Preview hover popover into a fully working editor instance",
+  "description": "Sidebar hover instance",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

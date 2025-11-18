@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (C) 2018-2021 by NothingIsLost <nothingislost@fastmail.com> and others
+Copyright (C) 2018-2021 by NothingIsLost <nothingislost@fastmail.com>
+Copyright (C) 2025 by Kobuster <Kobuster@gmx.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

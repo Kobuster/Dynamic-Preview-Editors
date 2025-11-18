@@ -123,6 +123,9 @@ export class HoverEditor extends nosuper(HoverPopover) {
   originalPath: string; // these are kept to avoid adopting targets w/a different link
   originalLinkText: string;
 
+  public dockedToSidebar: boolean = false;
+  public sidebarContainer: HTMLElement | null = null;
+
   static activePopover?: HoverEditor;
 
   static activeWindows() {
@@ -616,13 +619,12 @@ export class HoverEditor extends nosuper(HoverPopover) {
   }
 
   position(pos?: MousePos | null): void {
-    // without this adjustment, the x dimension keeps sliding over to the left as you progressively mouse over files
-    // disabling this for now since messing with pos.x like this breaks the detect() logic
-    // if (pos && pos.x !== undefined) {
-    //   pos.x = pos.x + 20;
-    // }
+    // SIDEBAR DOCKING: Skip positioning if docked
+    if (this.dockedToSidebar && this.sidebarContainer) {
+      return;
+    }
 
-    // native obsidian logic
+    // ORIGINAL FLOATING LOGIC (unchanged)
     if (pos === undefined) {
       pos = this.shownPos;
     }
@@ -656,9 +658,7 @@ export class HoverEditor extends nosuper(HoverPopover) {
     this.document.body.appendChild(this.hoverEl);
     positionEl(rect, this.hoverEl, { gap: 10 }, this.document);
 
-    // custom hover editor logic
     if (pos) {
-      // give positionEl a chance to adjust the position before we read the coords
       setTimeout(() => {
         const left = parseFloat(this.hoverEl.style.left);
         const top = parseFloat(this.hoverEl.style.top);
@@ -918,7 +918,31 @@ export class HoverEditor extends nosuper(HoverPopover) {
   }
 
   show() {
-    // native obsidian logic start
+    // SIDEBAR DOCKING: If docked, append to sidebar instead of body
+    if (this.dockedToSidebar && this.sidebarContainer) {
+      this.state = PopoverState.Shown;
+      this.timer = 0;
+      this.shownPos = mouseCoords;
+      
+      // Append to sidebar container
+      this.sidebarContainer.appendChild(this.hoverEl);
+      
+      // Skip positioning - we're docked
+      this.onShow();
+      app.workspace.onLayoutChange();
+      this.load();
+      
+      // Set initial dimensions for images
+      if (this.hoverEl.dataset.imgHeight && this.hoverEl.dataset.imgWidth) {
+        this.hoverEl.style.height = parseFloat(this.hoverEl.dataset.imgHeight) + this.titleEl.offsetHeight + "px";
+        this.hoverEl.style.width = parseFloat(this.hoverEl.dataset.imgWidth) + "px";
+      }
+      
+      // NO interact.js for sidebar mode
+      return;
+    }
+
+    // ORIGINAL FLOATING LOGIC (unchanged)
     if (!this.targetEl || this.document.body.contains(this.targetEl)) {
       this.state = PopoverState.Shown;
       this.timer = 0;
@@ -927,18 +951,11 @@ export class HoverEditor extends nosuper(HoverPopover) {
       this.document.removeEventListener("mousemove", setMouseCoords);
       this.onShow();
       app.workspace.onLayoutChange();
-      // initializingHoverPopovers.remove(this);
-      // activeHoverPopovers.push(this);
-      // initializePopoverChecker();
       this.load();
     } else {
       this.hide();
     }
-    // native obsidian logic end
 
-    // if this is an image view, set the dimensions to the natural dimensions of the image
-    // an interactjs reflow will be triggered to constrain the image to the viewport if it's
-    // too large
     if (this.hoverEl.dataset.imgHeight && this.hoverEl.dataset.imgWidth) {
       this.hoverEl.style.height = parseFloat(this.hoverEl.dataset.imgHeight) + this.titleEl.offsetHeight + "px";
       this.hoverEl.style.width = parseFloat(this.hoverEl.dataset.imgWidth) + "px";
@@ -1173,6 +1190,12 @@ export class HoverEditor extends nosuper(HoverPopover) {
                     return _file !== file && old.call(this, _file);
                   };
                 },
+                update(old) {
+                  // Newer versions of the plugin need this instead
+                  return function (_file) {
+                    return old.call(this, _file === file ? null : _file);
+                  }
+                }
               }),
               1,
             );
