@@ -3,6 +3,7 @@
   "name": "Dynamic Preview Editors",
   "version": "0.9.4",
   "minAppVersion": "1.5.8",
+  "main": "main.js",
   "description": "Choose native, Hover, or Sidebar previews based on link type.",
   "author": "Kobuster",
   "authorUrl": "https://github.com/Kobuster",
