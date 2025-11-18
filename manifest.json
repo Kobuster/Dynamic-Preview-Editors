@@ -1,7 +1,7 @@
 {
-  "id": "Dynamic-Preview-Editors",
+  "id": "dynamic-preview-editors",
   "name": "Dynamic Preview Editors",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "minAppVersion": "1.5.8",
   "description": "Choose native, Hover, or Sidebar previews based on link type.",
   "author": "Kobuster",

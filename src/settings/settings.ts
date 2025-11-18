@@ -85,8 +85,8 @@ export class SettingTab extends PluginSettingTab {
     });
 
     new Setting(containerEl)
-      .setName("Hover Trigger Delay (ms)")
-      .setDesc("How long to wait before showing a Hover Editor when hovering over a link")
+      .setName("Trigger Delay (ms)")
+      .setDesc("How long to wait before showing the Hover Editor or Sidebar Preview when hovering over a link")
       .addText(textfield => {
         textfield.setPlaceholder(String(this.plugin.settings.triggerDelay));
         textfield.inputEl.type = "number";
@@ -184,7 +184,7 @@ export class SettingTab extends PluginSettingTab {
       .addDropdown(dropdown =>
         dropdown
           .addOption("left", "Left sidebar")
-          .addOption("right", "right or left sidebar")
+          .addOption("right", "Right sidebar")
           .setValue(this.plugin.settings.sidebarPosition)
           .onChange(async (value: "left" | "right") => {
             this.plugin.settings.sidebarPosition = value;

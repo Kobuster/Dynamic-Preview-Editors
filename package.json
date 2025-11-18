@@ -1,7 +1,7 @@
 {
-  "name": "Sidebar-Preview",
-  "version": "0.10.0",
-  "description": "Sidebar hover instance",
+  "name": "dynamic-preview-editors",
+  "version": "0.9.4",
+  "description": "Preview links in the sidebar, the hover editor, or native preview based on their type",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -10,7 +10,7 @@
     "eslint": "eslint . --ext .ts,.tsx --fix"
   },
   "keywords": [],
-  "author": "",
+  "author": "Kobuster",
   "license": "MIT",
   "devDependencies": {
     "@codemirror/view": "^6.0.0",

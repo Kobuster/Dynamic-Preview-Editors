@@ -2,7 +2,7 @@
 
 # Dynamic Preview Editors – Native, Hover, Sidebar
 
-Preview your links in your sidebar, the hover editor, or native preview based on their type. This is a fork of [Hover Editor](https://github.com/nothingislost/obsidian-hover-editor) designed for more efficient reference viewing and (as close as exists) inline editing of embeds.
+Preview links in the sidebar, the hover editor, or native preview based on their type. This is a fork of [Hover Editor](https://github.com/nothingislost/obsidian-hover-editor) designed for more efficient reference viewing and (as close as exists) inline editing of embeds.
 
 ## Features
 
@@ -70,6 +70,7 @@ Install the BRAT plugin and put in https://github.com/kobuster/dynamic-preview-e
 3. Copy files to folder
 4. Reload Obsidian
 5. Enable in Settings → Community Plugins
+
 ## Configuration
 
 Open Settings → Sidebar Hover to configure:
