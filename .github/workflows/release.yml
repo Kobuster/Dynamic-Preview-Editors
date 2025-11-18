@@ -16,3 +16,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ophidian-lib/build@v1
+          token: ${{ secrets.GITHUB_TOKEN }}
